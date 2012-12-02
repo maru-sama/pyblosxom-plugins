@@ -95,6 +95,19 @@ install this version of Folksonomy, you may safely remove Joe's Tags plugin. Thi
 done because I was making frequent changes to Joe's plugin to support Folksonomy, and I 
 didn't want to have to keep bombarding him with change requests for Folksonomy to work.
 
+NOTE: Starting with 1.5.0 the plugin now supports caching. Like the stock tags plugin it is able 
+to save a pre-calculated folksonmy table to a cache file and re-use it later on. To enable this
+two steps are needed.
+
+        * Add a **py['folksonmy_cache']** entry to your config specifying where you want to save the
+          cache
+        * Run **pyblosxom-cmd buildfolksonomy** to create the cache file. Either run this every
+          time you create a new entry or have it run as a cron-job.
+
+If the file does not exist or is not a valid cache file the plugin falls back to re-calculating
+the table as part of the cb_head callback.
+
+
 Folksonomy 1.2.0 contains all the functionality of Tags version "200510242045 TCF"
 
 Folksonomy 1.3.0 fixes has a complete rewrite of the algorithm to choose related stories. 
@@ -117,10 +130,12 @@ Folksonomy 1.4 Introduces forced relationships for entries. This is extremely us
 Folksonomy 1.4.1 This is just a bugfix release that fixes the createFolksonomy function to 
                  actually produce a proper folksonomy table no other functionality got added.
 
+Folksonomy 1.5.0 Added caching functionality so the folksonomy table does not have to be
+                 recalculated for every access
 """
 
 __author__ = 'Timothy C. Fanelli <tim.fanelli@gmail.com>'
-__version__ = '1.4.1'
+__version__ = '1.5.0'
 __url__ = 'http://www.timfanelli.com'
 
 # Variables
