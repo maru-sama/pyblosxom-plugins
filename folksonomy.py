@@ -23,10 +23,10 @@ use in your story template.
 Adding $tags to your story template will create links to your tags. The links are somewhat 
 customizable, using the following config entries:
 
-	py['tag_url']
-	py['pretext']
-	py['posttext']
-	py['tagsep']
+        py['tag_url']
+        py['pretext']
+        py['posttext']
+        py['tagsep']
 
 The default tag_url should be set to http://yoursite/tags/, but you can also set 
 it to something like http://technorati.com/tags/.  Please make sure to have the trailing slash.
@@ -35,13 +35,13 @@ The pretext and posttext will appear on your webpage surrounding your tags and t
 note what to seperate the tags by.
 
 So, for example, if I have 
-	py['pretext'] = '<span class="tags">Tags: '
-	py['posttext'] = '</span>'
-	py['tagsep'] = ', '
+        py['pretext'] = '<span class="tags">Tags: '
+        py['posttext'] = '</span>'
+        py['tagsep'] = ', '
 
 Then it would appear like:
 
-	<span class="tags">Tags: biking, pennsylvania</span>
+        <span class="tags">Tags: biking, pennsylvania</span>
 
 $relatedtags and $relatedstories will only be populated when there's a single entry in the 
 page contents (e.g., you're viewing a story through it's permalink). 
@@ -62,7 +62,7 @@ which are ranked at least a "medium" in the full tagcloud.
 To use related stories or tags, simply add $relatedstories or $relatedtags to your
 flavour's story template. You can customize it's appearance by defining
 
-	#relatedstores { }
+        #relatedstores { }
 
 in your CSS.
 
@@ -99,7 +99,7 @@ Folksonomy 1.2.0 contains all the functionality of Tags version "200510242045 TC
 
 Folksonomy 1.3.0 fixes has a complete rewrite of the algorithm to choose related stories. 
                  Related stories are now ordered by how many tags they share with the story
-				 being viewed.
+                                 being viewed.
 
 Folksonomy 1.4 Introduces forced relationships for entries. This is extremely useful is you're 
                writing a series of a posts that share tags with other not-as-strongly-related 
@@ -107,12 +107,12 @@ Folksonomy 1.4 Introduces forced relationships for entries. This is extremely us
                change over time. To force a relationship to another entry, add a related tag to 
                your story's metadata section with a comma-separated list of entries, like so:
 
-			#related category/filename
+                        #related category/filename
 
-	       So if I have a post that I want to be related to "myotherpost.txt" in the 
+               So if I have a post that I want to be related to "myotherpost.txt" in the 
                "general" category, I would add:
 
-			#related general/myotherpost.txt
+                        #related general/myotherpost.txt
 
 Folksonomy 1.4.1 This is just a bugfix release that fixes the createFolksonomy function to 
                  actually produce a proper folksonomy table no other functionality got added.
@@ -129,385 +129,386 @@ import os, re, sys, string
 from Pyblosxom import entries
 
 def cb_start(args):
-	"""
-	Initializes the entrymap and folksonomy tables.
-	"""
+        """
+        Initializes the entrymap and folksonomy tables.
+        """
 
-	request = args['request']
-	config  = request.getConfiguration()
-	data    = request.getData()
+        request = args['request']
+        config  = request.getConfiguration()
+        data    = request.getData()
 
-	entrymap = {}
-	maxcount = 0;
+        entrymap = {}
+        maxcount = 0;
 
-	ignoretags = []
-	if config.has_key('ignore_tags'):
-		ignoretags = config['ignore_tags']
+        ignoretags = []
+        if config.has_key('ignore_tags'):
+                ignoretags = config['ignore_tags']
 
-	if not config.has_key('tag_url'):
-		config['tag_url'] = "%s/%s/" % (config['base_url'],'tags')
+        if not config.has_key('tag_url'):
+                config['tag_url'] = "%s/%s/" % (config['base_url'],'tags')
 
-	if not config.has_key('tag_url_display'):
-		config['tag_url_display'] = config['tag_url']
+        if not config.has_key('tag_url_display'):
+                config['tag_url_display'] = config['tag_url']
 
-	ignoredirectories = config[ 'ignore_directories' ]
+        ignoredirectories = config[ 'ignore_directories' ]
 
         tagfileswithext = [ "txt" ]
         if config.has_key( 'taggable_files' ):
                 tagfileswithext = config[ 'taggable_files' ]
 
-	for root,dirs,files in os.walk( config['datadir'] ):
-		for file in files:
+        for root,dirs,files in os.walk( config['datadir'] ):
+                for file in files:
                         #m = re.compile('.*\.([^.]+)$').search(file)
                         #if ( not m ) or ( not m.group(1) in tagfileswithext ):
-			if not os.path.splitext(file)[1].strip('.') in tagfileswithext:
-				continue
-			
-			entry_location = root + "/" + file
+                        if not os.path.splitext(file)[1].strip('.') in tagfileswithext:
+                                continue
+                        
+                        entry_location = root + "/" + file
 
-			directory = os.path.dirname(entry_location)
-			if ( os.path.split( directory )[1] in ignoredirectories ):
-				continue
+                        directory = os.path.dirname(entry_location)
+                        if ( os.path.split( directory )[1] in ignoredirectories ):
+                                continue
 
-			contents = open(entry_location,'r').read()
+                        contents = open(entry_location,'r').read()
 
-			m = re.compile( '\n#tags\s*(.*)\n' ).search(contents)
-			if m:
-				tagstring = m.group(1)
-				tags = tagstring.split(',')
+                        m = re.compile( '\n#tags\s*(.*)\n' ).search(contents)
+                        if m:
+                                tagstring = m.group(1)
+                                tags = tagstring.split(',')
 
-				first = True
-				for tag in tags:
-					if ( tag in ignoretags ):
-						continue
+                                first = True
+                                for tag in tags:
+                                        if ( tag in ignoretags ):
+                                                continue
 
-					if not tag in entrymap.keys():
-						entrymap[tag] = []
+                                        if not tag in entrymap.keys():
+                                                entrymap[tag] = []
 
-					entrymap[tag].append( entry_location )
-					maxcount = max( maxcount, len(entrymap[tag]) )
-			else:
-				if not "untagged" in entrymap.keys():
-					entrymap["untagged"] = []
+                                        entrymap[tag].append( entry_location )
+                                        maxcount = max( maxcount, len(entrymap[tag]) )
+                        else:
+                                if not "untagged" in entrymap.keys():
+                                        entrymap["untagged"] = []
 
-				entrymap["untagged"].append( entry_location )
+                                entrymap["untagged"].append( entry_location )
 
-	data['entrytagmap'] = entrymap
+        data['entrytagmap'] = entrymap
 
-	mincount = maxcount	
-	for tag in entrymap.keys():
-		mincount = min( mincount, min( mincount, len( entrymap[tag] ) ) )
+        mincount = maxcount     
+        for tag in entrymap.keys():
+                mincount = min( mincount, min( mincount, len( entrymap[tag] ) ) )
 
-	sortedtags = entrymap.keys()
-	sortedtags.sort()
+        sortedtags = entrymap.keys()
+        sortedtags.sort()
 
-	data['sortedtags']  = sortedtags
-	data['folksonomy']  = createFolksonomy( entrymap )
-	data["tagcloud"] = createTagCloud( config, entrymap, mincount, maxcount )
-	data["populartagcloud"] = createPopularTagCloud( config, entrymap, mincount, maxcount )
+        data['sortedtags']  = sortedtags
+        data['folksonomy']  = createFolksonomy( entrymap )
+        data["tagcloud"] = createTagCloud( config, entrymap, mincount, maxcount )
+        data["populartagcloud"] = createPopularTagCloud( config, entrymap, mincount, maxcount )
 
 def cb_story(args):
-	entry   = args['entry']
-	request = args['request']
-	data    = request.getData()
-	config  = request.getConfiguration()
+        entry   = args['entry']
+        request = args['request']
+        data    = request.getData()
+        config  = request.getConfiguration()
 
-	if not entry.has_key('tags'):
-		return
+        if not entry.has_key('tags'):
+                return
 
-	# If we're showing more than one story, the do not populate relatedtags and relatedstories.
-	renderer = args['renderer']
-	if ( len(renderer.getContent()) == 1 ):
-		relatedtags = getRelatedTags( entry, data, config )
-		if relatedtags:
-			entry['relatedtags']  = relatedtags
+        # If we're showing more than one story, the do not populate relatedtags and relatedstories.
+        renderer = args['renderer']
+        if ( len(renderer.getContent()) == 1 ):
+                entry_data = data.get("entry_list", [])[0]
+                relatedtags = getRelatedTags( entry_data, data, config )
+                if relatedtags:
+                        entry['relatedtags']  = relatedtags
 
-		relatedstories =  getRelatedStories( entry, request, data, config )
-		if relatedstories:
-			entry['relatedstories'] = relatedstories
+                relatedstories =  getRelatedStories( entry_data, request, data, config )
+                if relatedstories:
+                        entry['relatedstories'] = relatedstories
 
-	# Set the story tags and rss categories
-	entry.setMetadata('rawtags', entry.getMetadata('tags'))
-	storytags = "%s%s%s" % ( config['pretext'], config['tagsep'].join( [ "<a href='%s%s' rel='tag'>%s</a>" % ( config['tag_url'],tag,tag ) for tag in entry.getMetadata('tags').split(',')  ] ), config['posttext'] )	
-	entry.setMetadata('rsscategories', "".join( ['<category>%s</category>' % tag for tag in entry.getMetadata('tags').split(',')]))
-	entry.setMetadata('tags', storytags)
+        # Set the story tags and rss categories
+        entry['rawtags'] = entry['tags']
+        storytags = "%s%s%s" % ( config['pretext'], config['tagsep'].join( [ "<a href='%s%s' rel='tag'>%s</a>" % ( config['tag_url'],tag,tag ) for tag in entry['tags'].split(',')  ] ), config['posttext'] )       
+        entry['rsscategories'] = "".join( ['<category>%s</category>' % tag for tag in entry['tags'].split(',')])
+        entry['tags'] = storytags
 
-	return args['template']
+        return args['template']
 
 def getEntryTitle( entry ):
-	entry.getData()
-	return entry['title']
+        entry.getData()
+        return entry['title']
 
 def getRelatedStories( entry, request, data, config ):
-	"""
-	returns the set of stories that share tags with one or more tags in entry, sorted by decreasing order of number 
-	of shared tags.
-	"""
-	ignoretags = config['ignore_tags']
-	
-	related = {}
-	tags = entry.getMetadata('tags').split(',')
-	for tag in tags:
-		if tag in ignoretags:
-			continue
-		
-		tmp = _getrelatedstories( tag,data )
-		if tmp:
-			for relationship in tmp:
-				tag = relationship[0]
-				stories = relationship[1]
-				
-				for story in stories:
-					if related.has_key( story ):
-						related[story] = (related[story][0] + 1, story)
-					else:
-						related[story] = (1,story)
-						
+        """
+        returns the set of stories that share tags with one or more tags in entry, sorted by decreasing order of number 
+        of shared tags.
+        """
+        ignoretags = config['ignore_tags']
+        
+        related = {}
+        tags = entry.getMetadata('tags').split(',')
+        for tag in tags:
+                if tag in ignoretags:
+                        continue
+                
+                tmp = _getrelatedstories( tag,data )
+                if tmp:
+                        for relationship in tmp:
+                                tag = relationship[0]
+                                stories = relationship[1]
+                                
+                                for story in stories:
+                                        if related.has_key( story ):
+                                                related[story] = (related[story][0] + 1, story)
+                                        else:
+                                                related[story] = (1,story)
+                                                
 
-	# Read force-related from meta.
-	myentries = []
-	if entry.has_key('related'):
-		forcerelated = entry.getMetadata('related').split(',')
-		myentries = [ os.path.join( config['datadir'], location ) for location in forcerelated ]
-							
-	if related:
-		related = related.values()
-		related.sort()
-		related.reverse()
-		
-		myentries.extend( [ r[1] for r in related ] )
-		myentries = myentries[ : min( len(myentries), 6 ) ]
-		if myentries:	
-			relatedstories = ""
-			for entry_location in myentries:
-				tmpentry = entries.fileentry.FileEntry(request, entry_location, data['root_datadir'])
-				tmpentry.getData()
-				
-				if tmpentry._filename == entry._filename:
-					continue
+        # Read force-related from meta.
+        myentries = []
+        if entry.has_key('related'):
+                forcerelated = entry.getMetadata('related').split(',')
+                myentries = [ os.path.join( config['datadir'], location ) for location in forcerelated ]
+                                                        
+        if related:
+                related = related.values()
+                related.sort()
+                related.reverse()
+                
+                myentries.extend( [ r[1] for r in related ] )
+                myentries = myentries[ : min( len(myentries), 6 ) ]
+                if myentries:   
+                        relatedstories = ""
+                        for entry_location in myentries:
+                                tmpentry = entries.fileentry.FileEntry(request, entry_location, data['root_datadir'])
+                                tmpentry.getData()
+                                
+                                if tmpentry._filename == entry._filename:
+                                        continue
 
-				relatedstories = "%s\n%s<br/>" % (relatedstories, "<a href='%s/%s/%s'>%s</a>" % (config['base_url'],tmpentry['absolute_path'],tmpentry['fn'], getEntryTitle(tmpentry)))
-		
-			if relatedstories:
-				return "<div id='relatedstories'>%s<p>%s</p></div>" % ( config['relatedstories_header'], relatedstories )
+                                relatedstories = "%s\n%s<br/>" % (relatedstories, "<a href='%s/%s/%s'>%s</a>" % (config['base_url'],tmpentry['absolute_path'],tmpentry['fn'], getEntryTitle(tmpentry)))
+                
+                        if relatedstories:
+                                return "<div id='relatedstories'>%s<p>%s</p></div>" % ( config['relatedstories_header'], relatedstories )
 
 def _getrelatedstories( tag, data ):
-	""" 
-	Returns the set of tuples (tag,sharedstories) that share stories with the specified tag sorted in 
-	decreasing order of number of shared stories.
-	"""
-	sortedtags = data['sortedtags']
-	folksonomy = data['folksonomy']
+        """ 
+        Returns the set of tuples (tag,sharedstories) that share stories with the specified tag sorted in 
+        decreasing order of number of shared stories.
+        """
+        sortedtags = data['sortedtags']
+        folksonomy = data['folksonomy']
 
-	if ( not tag in sortedtags ):
-		return []
+        if ( not tag in sortedtags ):
+                return []
 
-	tagindex = sortedtags.index(tag)
+        tagindex = sortedtags.index(tag)
 
-	relationship = []
-	for t in sortedtags:
-		entries = []
-		position = sortedtags.index(t)
+        relationship = []
+        for t in sortedtags:
+                entries = []
+                position = sortedtags.index(t)
 
-		if ( tagindex <= position ):
-			entries = folksonomy[position][tagindex] 
-		elif ( tagindex > position ):
-			entries = folksonomy[tagindex][position] 
+                if ( tagindex <= position ):
+                        entries = folksonomy[position][tagindex] 
+                elif ( tagindex > position ):
+                        entries = folksonomy[tagindex][position] 
 
-		if entries:
-			relationship.append( (len(entries), entries, t ) )
+                if entries:
+                        relationship.append( (len(entries), entries, t ) )
 
-	relationship.sort()
-	relationship.reverse()
-	
-	return [ (r[2],r[1]) for r in relationship ]
+        relationship.sort()
+        relationship.reverse()
+        
+        return [ (r[2],r[1]) for r in relationship ]
 
 def getRelatedTags( entry, data, config ):
-	"""
-	returns the set of tags that share at least 2 stories with one or more tags in entry.
-	"""
-	ignoretags = config['ignore_tags']
+        """
+        returns the set of tags that share at least 2 stories with one or more tags in entry.
+        """
+        ignoretags = config['ignore_tags']
 
-	related = []
-	tags = entry.getMetadata('tags').split(',')
-	for tag in tags:
-		if tag in ignoretags:
-			continue
+        related = []
+        tags = entry.getMetadata('tags').split(',')
+        for tag in tags:
+                if tag in ignoretags:
+                        continue
 
-		tmp = _getrelatedtags( tag, data )
-		if ( tmp ):
-			related.extend(tmp)
+                tmp = _getrelatedtags( tag, data )
+                if ( tmp ):
+                        related.extend(tmp)
 
-	related.sort()
-	related.reverse()
+        related.sort()
+        related.reverse()
 
-	related = [ x[1] for x in related if x[0] > 1 ]
-	taglinks = "<div id='relatedtags'>%s%s</div>" % ( "related tags: ", ", ".join( ['<a href="%s%s" rel="tag">%s</a>' % (config['tag_url'],tag,tag) for tag in related] ) )
-	return related 
+        related = [ x[1] for x in related if x[0] > 1 ]
+        taglinks = "<div id='relatedtags'>%s%s</div>" % ( "related tags: ", ", ".join( ['<a href="%s%s" rel="tag">%s</a>' % (config['tag_url'],tag,tag) for tag in related] ) )
+        return related 
 
 def _getrelatedtags( tag, data ):
-	"""
-	Returns the set of tuples (sharedentries,tag) that share stories with the specified tag, 
-	sorted in decreasing order of number of entries shared.
-	"""
-	sortedtags = data['sortedtags']
-	folksonomy = data['folksonomy']
+        """
+        Returns the set of tuples (sharedentries,tag) that share stories with the specified tag, 
+        sorted in decreasing order of number of entries shared.
+        """
+        sortedtags = data['sortedtags']
+        folksonomy = data['folksonomy']
 
-	if ( not tag in sortedtags ):
-		print >>sys.stderr, 'ERROR: ' + tag + ' not in sortedtags.'
-		return []
+        if ( not tag in sortedtags ):
+                print >>sys.stderr, 'ERROR: ' + tag + ' not in sortedtags.'
+                return []
 
-	tagindex = sortedtags.index(tag)
+        tagindex = sortedtags.index(tag)
 
-	relationship = []
-	for t in sortedtags:
-		entries = []
-		position = sortedtags.index(t)
+        relationship = []
+        for t in sortedtags:
+                entries = []
+                position = sortedtags.index(t)
 
-		if ( tagindex <= position ):
-			entries = folksonomy[position][tagindex] 
-		elif ( tagindex > position ):
-			entries = folksonomy[tagindex][position] 
+                if ( tagindex <= position ):
+                        entries = folksonomy[position][tagindex] 
+                elif ( tagindex > position ):
+                        entries = folksonomy[tagindex][position] 
 
-		if entries:
-			relationship.append( ( len(entries), t ) )
+                if entries:
+                        relationship.append( ( len(entries), t ) )
 
-	relationship.sort()
-	relationship.reverse()
-	
-	return relationship 
-	
-	
+        relationship.sort()
+        relationship.reverse()
+        
+        return relationship 
+        
+        
 """
 Given tags [ A, B, C, D, E ] with entries T(A), T(B), T(C), T(D), and T(E) 
 respectively, build table folksonomy:
 
-  |	A		B		C		D		E
+  |     A               B               C               D               E
 --+------------------------------------------
-A |	T(A)	T(AB)	T(AC)	T(AD)	T(AE)
+A |     T(A)    T(AB)   T(AC)   T(AD)   T(AE)
   |
-B |	-		T(B)	T(BC)	T(BD)	T(BE)
+B |     -               T(B)    T(BC)   T(BD)   T(BE)
   |
-C |	-		-		T(C)	T(CD)	T(CE)
+C |     -               -               T(C)    T(CD)   T(CE)
   |
-D |	-		-		-		T(D)	T(DE)
+D |     -               -               -               T(D)    T(DE)
   |
-E |	-		-		-		-		T(E)
+E |     -               -               -               -               T(E)
 
 Such that for any tag x and any tag y, folksonomy[x,y] = set of entries in x and in y.
 """
 def createFolksonomy( entrymap ):
-	folksonomytable = []
-	taglist = entrymap.keys()
-	taglist.sort()
+        folksonomytable = []
+        taglist = entrymap.keys()
+        taglist.sort()
 
-	for y in range( 0, len(taglist)  ):
-		
-		for i in range(0,y): # create empty columns
-			folksonomytable.append('EMPTY')
+        for y in range( 0, len(taglist)  ):
+                
+                for i in range(0,y): # create empty columns
+                        folksonomytable.append('EMPTY')
 
 
-		for x in range( y, len(taglist) ):
-			folksonomytable.append([]) # create new column
-			
-			if x == y:
-				folksonomytable[x].append( entrymap[ taglist[x] ] )
-			else:
-				xentries = entrymap[taglist[x]]
-				yentries = entrymap[taglist[y]]
-			
-				xyentries = []
-				for entry in xentries:
-					if entry in yentries:
-						xyentries.append( entry )
+                for x in range( y, len(taglist) ):
+                        folksonomytable.append([]) # create new column
+                        
+                        if x == y:
+                                folksonomytable[x].append( entrymap[ taglist[x] ] )
+                        else:
+                                xentries = entrymap[taglist[x]]
+                                yentries = entrymap[taglist[y]]
+                        
+                                xyentries = []
+                                for entry in xentries:
+                                        if entry in yentries:
+                                                xyentries.append( entry )
 
-				folksonomytable[x].append(xyentries)
-	return folksonomytable
+                                folksonomytable[x].append(xyentries)
+        return folksonomytable
 
 
 def createPopularTagCloud( config, tagcount, mincount, maxcount ):
-	distribution = ( maxcount - mincount ) / 6
-	popcount = {}
-	popmin = maxcount
+        distribution = ( maxcount - mincount ) / 6
+        popcount = {}
+        popmin = maxcount
 
-	for tag in tagcount.keys():
-		count = len( tagcount[tag] )
-		if ( count > ( mincount + distribution ) ):
-			popcount[tag] = tagcount[tag]
-			popmin = min( popmin, count )
-	
-	return createTagCloud( config, popcount, popmin, maxcount )			
+        for tag in tagcount.keys():
+                count = len( tagcount[tag] )
+                if ( count > ( mincount + distribution ) ):
+                        popcount[tag] = tagcount[tag]
+                        popmin = min( popmin, count )
+        
+        return createTagCloud( config, popcount, popmin, maxcount )                     
 
 def createTagCloud( config, tagcount, mincount, maxcount ):
-	if tagcount:
-		tagurl = config['tag_url']
-		if config.has_key('tag_url_display'):
-			tagurl = config['tag_url_display']
+        if tagcount:
+                tagurl = config['tag_url']
+                if config.has_key('tag_url_display'):
+                        tagurl = config['tag_url_display']
 
-		tagcloud = []
-		tagcloud.append("<div id='tagcloud'>")
-		distribution = ( maxcount - mincount ) / 6
+                tagcloud = []
+                tagcloud.append("<div id='tagcloud'>")
+                distribution = ( maxcount - mincount ) / 6
 
-		for tag in tagcount.keys():
-			size = "mediumTag"
+                for tag in tagcount.keys():
+                        size = "mediumTag"
 
-			if tag != "untagged":
-				if ( len(tagcount[tag]) == maxcount ):
-					size = "mostHugeTag"
-				elif ( len(tagcount[tag]) > ( mincount + ( distribution * 5 ) ) ):
-					size = "hugestTag"
-				elif ( len(tagcount[tag]) > ( mincount + ( distribution * 4 ) ) ):
-					size = "hugeTag"
-				elif ( len(tagcount[tag]) > ( mincount + ( distribution * 3 ) ) ):
-					size = "biggestTag"
-				elif ( len(tagcount[tag]) > ( mincount + ( distribution * 2 ) ) ):
-					size = "bigTag"
-				elif ( len(tagcount[tag]) > ( mincount + distribution ) ):
-					size = "mediumTag"
-				elif ( len(tagcount[tag]) > mincount ):
-					size = "smallTag"
-				elif ( len(tagcount[tag]) == mincount ):
-					size = "smallestTag"
+                        if tag != "untagged":
+                                if ( len(tagcount[tag]) == maxcount ):
+                                        size = "mostHugeTag"
+                                elif ( len(tagcount[tag]) > ( mincount + ( distribution * 5 ) ) ):
+                                        size = "hugestTag"
+                                elif ( len(tagcount[tag]) > ( mincount + ( distribution * 4 ) ) ):
+                                        size = "hugeTag"
+                                elif ( len(tagcount[tag]) > ( mincount + ( distribution * 3 ) ) ):
+                                        size = "biggestTag"
+                                elif ( len(tagcount[tag]) > ( mincount + ( distribution * 2 ) ) ):
+                                        size = "bigTag"
+                                elif ( len(tagcount[tag]) > ( mincount + distribution ) ):
+                                        size = "mediumTag"
+                                elif ( len(tagcount[tag]) > mincount ):
+                                        size = "smallTag"
+                                elif ( len(tagcount[tag]) == mincount ):
+                                        size = "smallestTag"
 
-			tagcloud.append( "<a href='%s' class='%s' title='There are %s entries tagged %s'>%s</a>\n" % ( '%s%s' % ( tagurl,tag ), size, str(len(tagcount[tag])), tag, tag  ) )
-					
-		tagcloud.append("</div>")
-		result = "".join(tagcloud)
-		return result
+                        tagcloud.append( "<a href='%s' class='%s' title='There are %s entries tagged %s'>%s</a>\n" % ( '%s%s' % ( tagurl,tag ), size, str(len(tagcount[tag])), tag, tag  ) )
+                                        
+                tagcloud.append("</div>")
+                result = "".join(tagcloud)
+                return result
 
 def cb_filelist(args):
         request = args['request']
-	config = request.getConfiguration()
+        config = request.getConfiguration()
         data = request.getData()
-	new_files = [ ]
+        new_files = [ ]
 
-	m = re.compile(r'^%s' % config['tag_url']).match(data['url'])
-	if m:
-		#tag = re.sub("%s" % config['tag_url'],'',data['url'])
-		(tag,) = re.findall("%s/(\w*)" % (config['tag_url'].rstrip('/'),), data['url'])
-		
-		if tag in data['entrytagmap']:
-			return getEntriesForTag( tag, args )
-	
+        m = re.compile(r'^%s' % config['tag_url']).match(data['url'])
+        if m:
+                #tag = re.sub("%s" % config['tag_url'],'',data['url'])
+                (tag,) = re.findall("%s/(\w*)" % (config['tag_url'].rstrip('/'),), data['url'])
+                
+                if tag in data['entrytagmap']:
+                        return getEntriesForTag( tag, args )
+        
 def getEntriesForTag(tag,args):
         request = args['request']
-	config = request.getConfiguration()
+        config = request.getConfiguration()
         data = request.getData()
 
-	new_files = []
-	entrymap = data['entrytagmap']
+        new_files = []
+        entrymap = data['entrytagmap']
 
-	for entry_location in entrymap[tag]: 
-		tmpentry = entries.fileentry.FileEntry(request, entry_location, data['root_datadir'])
-		new_files.append(( tmpentry._mtime, tmpentry ))
+        for entry_location in entrymap[tag]: 
+                tmpentry = entries.fileentry.FileEntry(request, entry_location, data['root_datadir'])
+                new_files.append(( tmpentry._mtime, tmpentry ))
 
-	if new_files:
-		new_files.sort()
-		new_files.reverse()
+        if new_files:
+                new_files.sort()
+                new_files.reverse()
 
-		myentries = []
-		for myentry in new_files:
-			myentries.append( myentry[1] )
+                myentries = []
+                for myentry in new_files:
+                        myentries.append( myentry[1] )
 
-		return myentries
-	
+                return myentries
+        
