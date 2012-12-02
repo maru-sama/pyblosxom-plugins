@@ -479,20 +479,23 @@ def getEntriesForTag(tag,args):
         
 def build_folksonomy(command, argv):
     """Command for building the folksonomy tables."""
-    import config
+    from config import py as config
 
-    cachefile = config.py.get("folksonomy_cache")
+    cachefile = config.get("folksonomy_cache")
     if not cachefile:
         raise ValueError("config.py has no folksonomy cache file property.")
 
-    folksonomy = create_folksonomy(config.py)
+    if not config.has_key('tag_url'):
+            config['tag_url'] = "%s/%s/" % (config['base_url'],'tags')
+
+    folksonomy = create_folksonomy(config)
     with open(cachefile, "w") as cache:
         cPickle.dump(folksonomy, cache)
 
     return 0
 
 def cb_commandline(args):
-    args["builfolksonomy"] = (build_folksonomy, "builds the folksonomy tables")
+    args["buildfolksonomy"] = (build_folksonomy, "builds the folksonomy tables")
     return args
 
 def create_folksonomy(config):
