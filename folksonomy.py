@@ -113,10 +113,14 @@ Folksonomy 1.4 Introduces forced relationships for entries. This is extremely us
                "general" category, I would add:
 
 			#related general/myotherpost.txt
+
+Folksonomy 1.4.1 This is just a bugfix release that fixes the createFolksonomy function to 
+                 actually produce a proper folksonomy table no other functionality got added.
+
 """
 
 __author__ = 'Timothy C. Fanelli <tim.fanelli@gmail.com>'
-__version__ = '1.4'
+__version__ = '1.4.1'
 __url__ = 'http://www.timfanelli.com'
 
 # Variables
@@ -141,7 +145,7 @@ def cb_start(args):
 		ignoretags = config['ignore_tags']
 
 	if not config.has_key('tag_url'):
-		config['tag_url'] = "%s%s" % (config['base_url'],'tags')
+		config['tag_url'] = "%s/%s/" % (config['base_url'],'tags')
 
 	if not config.has_key('tag_url_display'):
 		config['tag_url_display'] = config['tag_url']
@@ -154,8 +158,9 @@ def cb_start(args):
 
 	for root,dirs,files in os.walk( config['datadir'] ):
 		for file in files:
-                        m = re.compile('.*\.([^.]+)$').search(file)
-                        if ( not m ) or ( not m.group(1) in tagfileswithext ):
+                        #m = re.compile('.*\.([^.]+)$').search(file)
+                        #if ( not m ) or ( not m.group(1) in tagfileswithext ):
+			if not os.path.splitext(file)[1].strip('.') in tagfileswithext:
 				continue
 			
 			entry_location = root + "/" + file
@@ -323,7 +328,7 @@ def getRelatedTags( entry, data, config ):
 	"""
 	ignoretags = config['ignore_tags']
 
- 	related = []
+	related = []
 	tags = entry.getMetadata('tags').split(',')
 	for tag in tags:
 		if tag in ignoretags:
@@ -338,7 +343,7 @@ def getRelatedTags( entry, data, config ):
 
 	related = [ x[1] for x in related if x[0] > 1 ]
 	taglinks = "<div id='relatedtags'>%s%s</div>" % ( "related tags: ", ", ".join( ['<a href="%s%s" rel="tag">%s</a>' % (config['tag_url'],tag,tag) for tag in related] ) )
-	return related
+	return related 
 
 def _getrelatedtags( tag, data ):
 	"""
@@ -370,7 +375,7 @@ def _getrelatedtags( tag, data ):
 	relationship.sort()
 	relationship.reverse()
 	
-	return relationship
+	return relationship 
 	
 	
 """
@@ -397,12 +402,16 @@ def createFolksonomy( entrymap ):
 	taglist.sort()
 
 	for y in range( 0, len(taglist)  ):
-		for x in range( y, len(taglist) ):
-			for i in range(0,y):
-				folksonomytable[i].append([])
+		
+		for i in range(0,y): # create empty columns
+			folksonomytable.append('EMPTY')
 
+
+		for x in range( y, len(taglist) ):
+			folksonomytable.append([]) # create new column
+			
 			if x == y:
-				folksonomytable.append( [ entrymap[ taglist[x] ][:] ] )
+				folksonomytable[x].append( entrymap[ taglist[x] ] )
 			else:
 				xentries = entrymap[taglist[x]]
 				yentries = entrymap[taglist[y]]
@@ -412,11 +421,7 @@ def createFolksonomy( entrymap ):
 					if entry in yentries:
 						xyentries.append( entry )
 
-				if y == 0:
-					folksonomytable.append([xyentries])
-				else:
-					folksonomytable[x].append(xyentries)
-								
+				folksonomytable[x].append(xyentries)
 	return folksonomytable
 
 
@@ -464,7 +469,7 @@ def createTagCloud( config, tagcount, mincount, maxcount ):
 				elif ( len(tagcount[tag]) == mincount ):
 					size = "smallestTag"
 
-			tagcloud.append( "<a href='%s' class='%s' alt='There are %s entries tagged %s'>%s</a>\n" % ( '%s%s' % ( tagurl,tag ), size, str(len(tagcount[tag])), tag, tag  ) )
+			tagcloud.append( "<a href='%s' class='%s' title='There are %s entries tagged %s'>%s</a>\n" % ( '%s%s' % ( tagurl,tag ), size, str(len(tagcount[tag])), tag, tag  ) )
 					
 		tagcloud.append("</div>")
 		result = "".join(tagcloud)
@@ -478,8 +483,11 @@ def cb_filelist(args):
 
 	m = re.compile(r'^%s' % config['tag_url']).match(data['url'])
 	if m:
-		tag = re.sub("%s" % config['tag_url'],'',data['url'])
-		return getEntriesForTag( tag, args )
+		#tag = re.sub("%s" % config['tag_url'],'',data['url'])
+		(tag,) = re.findall("%s/(\w*)" % (config['tag_url'].rstrip('/'),), data['url'])
+		
+		if tag in data['entrytagmap']:
+			return getEntriesForTag( tag, args )
 	
 def getEntriesForTag(tag,args):
         request = args['request']
