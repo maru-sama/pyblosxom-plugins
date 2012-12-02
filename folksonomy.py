@@ -126,6 +126,7 @@ __url__ = 'http://www.timfanelli.com'
 # Variables
 
 import os, re, sys, string
+import cPickle
 from Pyblosxom import entries
 
 def cb_start(args):
@@ -137,74 +138,24 @@ def cb_start(args):
         config  = request.getConfiguration()
         data    = request.getData()
 
-        entrymap = {}
-        maxcount = 0;
-
-        ignoretags = []
-        if config.has_key('ignore_tags'):
-                ignoretags = config['ignore_tags']
-
         if not config.has_key('tag_url'):
                 config['tag_url'] = "%s/%s/" % (config['base_url'],'tags')
 
         if not config.has_key('tag_url_display'):
                 config['tag_url_display'] = config['tag_url']
 
-        ignoredirectories = config[ 'ignore_directories' ]
+        if os.path.exists(config.get("folksonomy_cache", "")):
+            try:
+                fp = open(config["folksonomy_cache"])
+                folksonomy = cPickle.load(fp)
+                fp.close()
+                data.update(folksonomy)
 
-        tagfileswithext = [ "txt" ]
-        if config.has_key( 'taggable_files' ):
-                tagfileswithext = config[ 'taggable_files' ]
+            except:
+                data.update(create_folksonomy(config))
 
-        for root,dirs,files in os.walk( config['datadir'] ):
-                for file in files:
-                        #m = re.compile('.*\.([^.]+)$').search(file)
-                        #if ( not m ) or ( not m.group(1) in tagfileswithext ):
-                        if not os.path.splitext(file)[1].strip('.') in tagfileswithext:
-                                continue
-                        
-                        entry_location = root + "/" + file
-
-                        directory = os.path.dirname(entry_location)
-                        if ( os.path.split( directory )[1] in ignoredirectories ):
-                                continue
-
-                        contents = open(entry_location,'r').read()
-
-                        m = re.compile( '\n#tags\s*(.*)\n' ).search(contents)
-                        if m:
-                                tagstring = m.group(1)
-                                tags = tagstring.split(',')
-
-                                first = True
-                                for tag in tags:
-                                        if ( tag in ignoretags ):
-                                                continue
-
-                                        if not tag in entrymap.keys():
-                                                entrymap[tag] = []
-
-                                        entrymap[tag].append( entry_location )
-                                        maxcount = max( maxcount, len(entrymap[tag]) )
-                        else:
-                                if not "untagged" in entrymap.keys():
-                                        entrymap["untagged"] = []
-
-                                entrymap["untagged"].append( entry_location )
-
-        data['entrytagmap'] = entrymap
-
-        mincount = maxcount     
-        for tag in entrymap.keys():
-                mincount = min( mincount, min( mincount, len( entrymap[tag] ) ) )
-
-        sortedtags = entrymap.keys()
-        sortedtags.sort()
-
-        data['sortedtags']  = sortedtags
-        data['folksonomy']  = createFolksonomy( entrymap )
-        data["tagcloud"] = createTagCloud( config, entrymap, mincount, maxcount )
-        data["populartagcloud"] = createPopularTagCloud( config, entrymap, mincount, maxcount )
+        else:
+            data.update(create_folksonomy(config))
 
 def cb_story(args):
         entry   = args['entry']
@@ -425,7 +376,6 @@ def createFolksonomy( entrymap ):
                                 folksonomytable[x].append(xyentries)
         return folksonomytable
 
-
 def createPopularTagCloud( config, tagcount, mincount, maxcount ):
         distribution = ( maxcount - mincount ) / 6
         popcount = {}
@@ -512,3 +462,88 @@ def getEntriesForTag(tag,args):
 
                 return myentries
         
+def build_folksonomy(command, argv):
+    """Command for building the folksonomy tables."""
+    import config
+
+    cachefile = config.py.get("folksonomy_cache")
+    if not cachefile:
+        raise ValueError("config.py has no folksonomy cache file property.")
+
+    folksonomy = create_folksonomy(config.py)
+    with open(cachefile, "w") as cache:
+        cPickle.dump(folksonomy, cache)
+
+    return 0
+
+def cb_commandline(args):
+    args["builfolksonomy"] = (build_folksonomy, "builds the folksonomy tables")
+    return args
+
+def create_folksonomy(config):
+    """ Initialize the folksonmy table
+    and some other basic information """
+    
+    folksonomy = {}
+    entrymap = {}
+    maxcount = 0;
+
+    ignoretags = []
+    if config.has_key('ignore_tags'):
+            ignoretags = config['ignore_tags']
+
+    ignoredirectories = config[ 'ignore_directories' ]
+
+    tagfileswithext = [ "txt" ]
+    if config.has_key( 'taggable_files' ):
+            tagfileswithext = config[ 'taggable_files' ]
+
+    for root,dirs,files in os.walk( config['datadir'] ):
+            for file in files:
+                    if not os.path.splitext(file)[1].strip('.') in tagfileswithext:
+                            continue
+                    
+                    entry_location = root + "/" + file
+
+                    directory = os.path.dirname(entry_location)
+                    if ( os.path.split( directory )[1] in ignoredirectories ):
+                            continue
+
+                    contents = open(entry_location,'r').read()
+
+                    m = re.compile( '\n#tags\s*(.*)\n' ).search(contents)
+                    if m:
+                            tagstring = m.group(1)
+                            tags = tagstring.split(',')
+
+                            first = True
+                            for tag in tags:
+                                    if ( tag in ignoretags ):
+                                            continue
+
+                                    if not tag in entrymap.keys():
+                                            entrymap[tag] = []
+
+                                    entrymap[tag].append( entry_location )
+                                    maxcount = max( maxcount, len(entrymap[tag]) )
+                    else:
+                            if not "untagged" in entrymap.keys():
+                                    entrymap["untagged"] = []
+
+                            entrymap["untagged"].append( entry_location )
+
+    folksonomy['entrytagmap'] = entrymap
+
+    mincount = maxcount     
+    for tag in entrymap.keys():
+            mincount = min( mincount, min( mincount, len( entrymap[tag] ) ) )
+
+    sortedtags = entrymap.keys()
+    sortedtags.sort()
+
+    folksonomy['sortedtags']      = sortedtags
+    folksonomy['folksonomy']      = createFolksonomy( entrymap )
+    folksonomy["tagcloud"]        = createTagCloud( config, entrymap, mincount, maxcount )
+    folksonomy["populartagcloud"] = createPopularTagCloud( config, entrymap, mincount, maxcount )
+
+    return folksonomy
