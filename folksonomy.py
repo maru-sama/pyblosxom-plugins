@@ -367,7 +367,7 @@ def createFolksonomy( entrymap ):
     taglist.sort()
 
     # Create the initial table
-    folksonomytable = [[]]*len(taglist)
+    folksonomytable = [[] for x in xrange(len(taglist))]
 
     for y in range(0, len(taglist)):
             
