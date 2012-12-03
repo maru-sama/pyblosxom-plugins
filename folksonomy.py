@@ -363,17 +363,15 @@ E |     -               -               -               -               T(E)
 Such that for any tag x and any tag y, folksonomy[x,y] = set of entries in x and in y.
 """
 def createFolksonomy( entrymap ):
-    folksonomytable = []
     taglist = entrymap.keys()
     taglist.sort()
 
-    for y in range( 0, len(taglist)  ):
-            
-        for i in range(0,y): # create empty columns
-            folksonomytable.append('EMPTY')
+    # Create the initial table
+    folksonomytable = [[]]*len(taglist)
 
-        for x in range( y, len(taglist) ):
-            folksonomytable.append([]) # create new column
+    for y in range(0, len(taglist)):
+            
+        for x in range(y, len(taglist)):
             
             if x == y:
                 folksonomytable[x].append( entrymap[ taglist[x] ] )
@@ -384,7 +382,7 @@ def createFolksonomy( entrymap ):
                 xyentries = []
                 for entry in xentries:
                     if entry in yentries:
-                        xyentries.append( entry )
+                        xyentries.append(entry)
 
                 folksonomytable[x].append(xyentries)
     return folksonomytable
