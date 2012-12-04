@@ -416,15 +416,11 @@ def createFolksonomy(entrymap):
             if x == y:
                 folksonomytable[x].append(entrymap[taglist[x]])
             else:
-                xentries = entrymap[taglist[x]]
-                yentries = entrymap[taglist[y]]
-
-                xyentries = []
-                for entry in xentries:
-                    if entry in yentries:
-                        xyentries.append(entry)
-
+                xentries = set(entrymap[taglist[x]])
+                yentries = set(entrymap[taglist[y]])
+                xyentries = list(xentries.intersection(yentries))
                 folksonomytable[x].append(xyentries)
+
     return folksonomytable
 
 
