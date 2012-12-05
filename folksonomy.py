@@ -139,9 +139,9 @@ Folksonomy 1.4 Introduces forced relationships for entries. This is extremely
 
                         #related general/myotherpost.txt
 
-Folksonomy 1.4.1 This is just a bugfix release that fixes the createFolksonomy
-                 function to actually produce a proper folksonomy table no
-                 other functionality got added.
+Folksonomy 1.4.1 This is just a bugfix release that fixes the
+                 create_folksonomy_table function to actually produce a proper
+                 folksonomy table no other functionality got added.
 
 Folksonomy 1.5.0 Added caching functionality so the folksonomy table does not
                  have to be recalculated for every access
@@ -156,7 +156,6 @@ __url__ = 'http://www.timfanelli.com'
 import os
 import re
 import sys
-import string
 import cPickle
 from Pyblosxom import entries
 
@@ -204,11 +203,11 @@ def cb_story(args):
     renderer = args['renderer']
     if (len(renderer.getContent()) == 1):
         entry_data = data.get("entry_list", [])[0]
-        relatedtags = getRelatedTags(entry_data, data, config)
+        relatedtags = get_related_tags(entry_data, data, config)
         if relatedtags:
             entry['relatedtags'] = relatedtags
 
-        relatedstories = getRelatedStories(
+        relatedstories = get_related_stories(
             entry_data, request, data, config)
         if relatedstories:
             entry['relatedstories'] = relatedstories
@@ -227,12 +226,12 @@ def cb_story(args):
     return args['template']
 
 
-def getEntryTitle(entry):
+def get_entry_title(entry):
     entry.getData()
     return entry['title']
 
 
-def getRelatedStories(entry, request, data, config):
+def get_related_stories(entry, request, data, config):
     """
     returns the set of stories that share tags with one or more tags in entry,
     sorted by decreasing order of number of shared tags.
@@ -245,7 +244,7 @@ def getRelatedStories(entry, request, data, config):
         if tag in ignoretags:
             continue
 
-        tmp = _getrelatedstories(tag, data)
+        tmp = _get_related_stories(tag, data)
         if tmp:
             for relationship in tmp:
                 tag = relationship[0]
@@ -285,14 +284,14 @@ def getRelatedStories(entry, request, data, config):
                                  "<a href='%s/%s/%s'>%s</a>" %
                                  (config['base_url'],
                                  tmpentry['absolute_path'], tmpentry['fn'],
-                                 getEntryTitle(tmpentry)))
+                                 get_entry_title(tmpentry)))
 
             if relatedstories:
                 return "<div id='relatedstories'>%s<p>%s</p></div>" % (
                     config['relatedstories_header'], relatedstories)
 
 
-def _getrelatedstories(tag, data):
+def _get_related_stories(tag, data):
     """
     Returns the set of tuples (tag,sharedstories) that share stories with the
     specified tag sorted in decreasing order of number of shared stories.
@@ -324,7 +323,7 @@ def _getrelatedstories(tag, data):
     return [(r[2], r[1]) for r in relationship]
 
 
-def getRelatedTags(entry, data, config):
+def get_related_tags(entry, data, config):
     """
     returns the set of tags that share at least 2 stories with one or more tags
     in entry.
@@ -337,7 +336,7 @@ def getRelatedTags(entry, data, config):
         if tag in ignoretags:
             continue
 
-        tmp = _getrelatedtags(tag, data)
+        tmp = _get_related_tags(tag, data)
         if (tmp):
             related.extend(tmp)
 
@@ -345,13 +344,10 @@ def getRelatedTags(entry, data, config):
     related.reverse()
 
     related = [x[1] for x in related if x[0] > 1]
-    taglinks = "<div id='relatedtags'>%s%s</div>" % ("related tags: ",
-               ", ".join(['<a href="%s%s" rel="tag">%s</a>' %
-               (config['tag_url'], tag, tag) for tag in related]))
     return related
 
 
-def _getrelatedtags(tag, data):
+def _get_related_tags(tag, data):
     """
     Returns the set of tuples (sharedentries,tag) that share stories with the
     specified tag, sorted in decreasing order of number of entries shared.
@@ -404,7 +400,7 @@ and in y.
 """
 
 
-def createFolksonomy(entrymap):
+def create_folksonomy_table(entrymap):
     taglist = entrymap.keys()
     taglist.sort()
 
@@ -424,7 +420,7 @@ def createFolksonomy(entrymap):
     return folksonomytable
 
 
-def createPopularTagCloud(config, tagcount, mincount, maxcount):
+def create_popular_tagcloud(config, tagcount, mincount, maxcount):
     distribution = (maxcount - mincount) / 6
     popcount = {}
     popmin = maxcount
@@ -435,10 +431,10 @@ def createPopularTagCloud(config, tagcount, mincount, maxcount):
             popcount[tag] = tagcount[tag]
             popmin = min(popmin, count)
 
-    return createTagCloud(config, popcount, popmin, maxcount)
+    return create_tagcloud(config, popcount, popmin, maxcount)
 
 
-def createTagCloud(config, tagcount, mincount, maxcount):
+def create_tagcloud(config, tagcount, mincount, maxcount):
     if tagcount:
         tagurl = config['tag_url']
         if 'tag_url_display' in config:
@@ -482,7 +478,6 @@ def cb_filelist(args):
     request = args['request']
     config = request.getConfiguration()
     data = request.getData()
-    new_files = []
 
     m = re.compile(r'^%s' % config['tag_url']).match(data['url'])
     if m:
@@ -491,12 +486,11 @@ def cb_filelist(args):
             "%s/(\w*)" % (config['tag_url'].rstrip('/'),), data['url'])
 
         if tag in data['entrytagmap']:
-            return getEntriesForTag(tag, args)
+            return get_entries_for_tag(tag, args)
 
 
-def getEntriesForTag(tag, args):
+def get_entries_for_tag(tag, args):
     request = args['request']
-    config = request.getConfiguration()
     data = request.getData()
 
     new_files = []
@@ -578,7 +572,6 @@ def create_folksonomy(config):
                 tagstring = m.group(1)
                 tags = tagstring.split(',')
 
-                first = True
                 for tag in tags:
                     if (tag in ignoretags):
                         continue
@@ -604,10 +597,10 @@ def create_folksonomy(config):
     sortedtags.sort()
 
     folksonomy['sortedtags'] = sortedtags
-    folksonomy['folksonomy'] = createFolksonomy(entrymap)
-    folksonomy["tagcloud"] = createTagCloud(
+    folksonomy['folksonomy'] = create_folksonomy_table(entrymap)
+    folksonomy["tagcloud"] = create_tagcloud(
         config, entrymap, mincount, maxcount)
-    folksonomy["populartagcloud"] = createPopularTagCloud(
+    folksonomy["populartagcloud"] = create_popular_tagcloud(
         config, entrymap, mincount, maxcount)
 
     return folksonomy
