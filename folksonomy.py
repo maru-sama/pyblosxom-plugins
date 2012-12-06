@@ -177,9 +177,8 @@ def cb_start(args):
 
     if os.path.exists(config.get("folksonomy_cache", "")):
         try:
-            fp = open(config["folksonomy_cache"])
-            folksonomy = cPickle.load(fp)
-            fp.close()
+            with open(config["folksonomy_cache"]) as fp:
+                folksonomy = cPickle.load(fp)
             data.update(folksonomy)
 
         except:
@@ -265,8 +264,7 @@ def get_related_stories(entry, request, data, config):
 
     if related:
         related = related.values()
-        related.sort()
-        related.reverse()
+        related.sort(reverse=True)
 
         myentries.extend([r[1] for r in related])
         myentries = myentries[: min(len(myentries), 6)]
@@ -317,8 +315,7 @@ def _get_related_stories(tag, data):
         if entries:
             relationship.append((len(entries), entries, t))
 
-    relationship.sort()
-    relationship.reverse()
+    relationship.sort(reverse=True)
 
     return [(r[2], r[1]) for r in relationship]
 
@@ -340,8 +337,7 @@ def get_related_tags(entry, data, config):
         if (tmp):
             related.extend(tmp)
 
-    related.sort()
-    related.reverse()
+    related.sort(reverse=True)
 
     related = [x[1] for x in related if x[0] > 1]
     return related
@@ -374,8 +370,7 @@ def _get_related_tags(tag, data):
         if entries:
             relationship.append((len(entries), t))
 
-    relationship.sort()
-    relationship.reverse()
+    relationship.sort(reverse=True)
 
     return relationship
 
@@ -502,14 +497,9 @@ def get_entries_for_tag(tag, args):
         new_files.append((tmpentry._mtime, tmpentry))
 
     if new_files:
-        new_files.sort()
-        new_files.reverse()
+        new_files.sort(reverse=True)
 
-        myentries = []
-        for myentry in new_files:
-            myentries.append(myentry[1])
-
-        return myentries
+        return [myentry[1] for myentry in new_files]
 
 
 def build_folksonomy(command, argv):
@@ -587,15 +577,12 @@ def create_folksonomy(config):
 
                 entrymap["untagged"].append(entry_location)
 
-    folksonomy['entrytagmap'] = entrymap
-
-    mincount = maxcount
-    for tag in entrymap.keys():
-        mincount = min(mincount, min(mincount, len(entrymap[tag])))
+    mincount = min(map(len, entrymap.values()))
 
     sortedtags = entrymap.keys()
     sortedtags.sort()
 
+    folksonomy['entrytagmap'] = entrymap
     folksonomy['sortedtags'] = sortedtags
     folksonomy['folksonomy'] = create_folksonomy_table(entrymap)
     folksonomy["tagcloud"] = create_tagcloud(
