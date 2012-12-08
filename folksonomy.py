@@ -197,17 +197,16 @@ def cb_story(args):
     if 'tags' not in entry:
         return
 
-    # If we're showing more than one story, the do not populate relatedtags
+    # If we're showing more than one story, then do not populate relatedtags
     # and relatedstories.
     renderer = args['renderer']
     if (len(renderer.getContent()) == 1):
-        entry_data = data.get("entry_list", [])[0]
-        relatedtags = get_related_tags(entry_data, data, config)
+        relatedtags = get_related_tags(entry, data, config)
         if relatedtags:
             entry['relatedtags'] = relatedtags
 
         relatedstories = get_related_stories(
-            entry_data, request, data, config)
+            entry, request, data, config)
         if relatedstories:
             entry['relatedstories'] = relatedstories
 
@@ -222,7 +221,7 @@ def cb_story(args):
         ['<category>%s</category>' % tag for tag in entry['tags'].split(',')])
     entry['tags'] = storytags
 
-    return args['template']
+    return args
 
 
 def get_entry_title(entry):
@@ -238,7 +237,7 @@ def get_related_stories(entry, request, data, config):
     ignoretags = config['ignore_tags']
 
     related = {}
-    tags = entry.getMetadata('tags').split(',')
+    tags = entry['tags'].split(',')
     for tag in tags:
         if tag in ignoretags:
             continue
@@ -257,8 +256,8 @@ def get_related_stories(entry, request, data, config):
 
     # Read force-related from meta.
     myentries = []
-    if entry.has_key('related'):
-        forcerelated = entry.getMetadata('related').split(',')
+    if 'related' in entry:
+        forcerelated = entry['related'].split(',')
         myentries = [os.path.join(
             config['datadir'], location) for location in forcerelated]
 
@@ -275,7 +274,7 @@ def get_related_stories(entry, request, data, config):
                     request, entry_location, data['root_datadir'])
                 tmpentry.getData()
 
-                if tmpentry._filename == entry._filename:
+                if tmpentry._filename == entry['filename']:
                     continue
 
                 relatedstories = "%s\n%s<br/>" % (relatedstories,
@@ -328,7 +327,7 @@ def get_related_tags(entry, data, config):
     ignoretags = config['ignore_tags']
 
     related = []
-    tags = entry.getMetadata('tags').split(',')
+    tags = entry['tags'].split(',')
     for tag in tags:
         if tag in ignoretags:
             continue
