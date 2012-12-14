@@ -245,7 +245,11 @@ def get_related_stories(entry, request, data, config):
         tmp = _get_related_stories(tag, data)
         if tmp:
             for relationship in tmp:
-                tag = relationship[0]
+                # Filter entries that do not share a tag with the existing
+                # entry otherwise they will be wrongly ranked higher.
+                if relationship[0] not in tags:
+                    continue
+
                 stories = relationship[1]
 
                 for story in stories:
