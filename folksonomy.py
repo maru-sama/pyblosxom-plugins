@@ -582,8 +582,11 @@ def create_folksonomy(config):
 
     mincount = min(map(len, entrymap.values()))
 
+    sortedtags = entrymap.keys()
+    sortedtags.sort()
+
     folksonomy['entrytagmap'] = entrymap
-    folksonomy['sortedtags'] = entrymap.keys().sort()
+    folksonomy['sortedtags'] = sortedtags
     folksonomy['folksonomy'] = create_folksonomy_table(entrymap)
     folksonomy["tagcloud"] = create_tagcloud(
         config, entrymap, mincount, maxcount)
